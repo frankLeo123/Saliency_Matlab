@@ -4,22 +4,18 @@ close all;clear all;
 addpath './MEX'
 addpath './SLIC'
 % cd('D:\documents\saliency\2012_saliency_filters');    
-k=6;%ÈÚºÏÊ±ºòµÄ²ÎÊı
-% pic='E:\Doc\Code\Matlab\project\Done\SaliencyFilters\leaf.bmp ';
-pic = 'E:\Doc\data\images\Imgs\0_12_12816.jpg';
-% pic = 'E:\Doc\data\images\Imgs\1_38_38642.jpg';
-% pic = 'E:\Doc\data\images\Imgs\1_44_44224.jpg';
-
-img2d=imread(pic);
-numberofsp=50;
-%0-1Ö®¼äµÄĞ¡Êı
-img  = im2double(imread(pic));
-%´´½¨tempÄ¿Â¼£¬´æ·ÅSLICËã·¨´¦ÀíºóµÄÍ¼Æ¬
-mask_path=strcat('./temp/',pic(length(pic)-9:length(pic)-4));
-mask_path=strcat(mask_path,'_');    
-mask_path=strcat(mask_path,num2str(numberofsp));
-mask_path=strcat(mask_path,'.mat');
-
+k=6;%ï¿½Úºï¿½Ê±ï¿½ï¿½Ä²ï¿½ï¿½ï¿½
+inputpath = '/home/frank/Documents/data/Imgs/';
+outputpath = './debug/res/';
+Files=dir([inputpath '*.jpg']);  
+number=length(Files); 
+for i=1:number
+    pic = imread([inputpath Files(i).name]);
+%     img2d=imread(pic);
+    numberofsp=50;
+%0-1Ö®ï¿½ï¿½ï¿½Ğ¡ï¿½ï¿½
+    img  = im2double(pic);
+%ï¿½ï¿½ï¿½ï¿½tempÄ¿Â¼ï¿½ï¿½ï¿½ï¿½ï¿½SLICï¿½ã·¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼Æ¬
 %% step init hsi
 [hsi,H_channel,S_channel,I_channel]=rgb2hsi(img);
 [Yh,Xh]=imhist(H_channel,64);
@@ -30,8 +26,9 @@ mask_path=strcat(mask_path,'.mat');
 [ H_result ] = selectChannel( Yh,64 );
 [ S_result ] = selectChannel( Ys,64 );
 [ I_result ] = selectChannel( Yi,64 );
-
-maxChannel=max(max(H_result,S_result),I_result);
+a = 1;b = 2; c =3;
+d = max(max(a,b),c);
+maxChannel = max(max(H_result,S_result),I_result);
 %     sp  = mexGenerateSuperPixel(img, numberofsp);  
 [sp_res,N] = superpixels(img,450);
 
@@ -47,7 +44,7 @@ if(maxChannel == I_result)
 end
  BW_res = boundarymask(sp_res);
  BW = boundarymask(sp);
- 
+
 % subplot(2,2,1);
 % imshow(img);
 % title('Source Image');
@@ -67,7 +64,7 @@ sp = sp - 1;
 sp = double(sp);
 % segToImg(sp+1);
 maxsp=max(sp(:));
-%¸Ã±äÁ¿µÄ×÷ÓÃ£¬ÊÇsp+1
+%ï¿½Ã±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½sp+1
 trya=sp+1;
 
 % the mean color of the sp
@@ -78,11 +75,11 @@ LabImg=RGB2Lab(img);
 for channel = 1: 3
     tempImg = LabImg(:,:,channel);
     for i=1:maxsp+1
-        %trya==iÅĞ¶Ï¾ØÕóÖĞÊÇ·ñ´æÔÚ=iµÄÖµ£¬´æÔÚÎª1£¬²»´æÔÚÎª0£¨ÔÚ¾ØÕóÖĞ£©
+        %trya==iï¿½Ğ¶Ï¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½=iï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª0ï¿½ï¿½ï¿½Ú¾ï¿½ï¿½ï¿½ï¿½Ğ£ï¿½
         meanLabColor(i,1,channel)=mean( tempImg(trya==i));
     end
 end
-%rgb´¦Àí
+%rgbï¿½ï¿½ï¿½ï¿½
 rgbImg = img*255;
 meanrgbColor=zeros(maxsp+1,1,3) ;
 for channel = 1: 3
@@ -105,14 +102,14 @@ imshow(meanImg);
 tic
 [X, Y] = size(sp) ;
 cntr=get_centers(sp+1);
-%Ã»¸ã¶®ÎªÉ¶Òª³ıÒÔ¹Ì¶¨µÄÊıÖµ
+%Ã»ï¿½ã¶®ÎªÉ¶Òªï¿½ï¿½ï¿½Ô¹Ì¶ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
 cntr = cntr / max( X , Y);
 
 % U=uniqueness( cntr, labImg, 15 );
 % cntr
 % meanColor
 U=uniqueness( cntr, meanLabColor, 0.25 );
-%±ØĞë¹éÒ»»¯£¬ÎªÁËimshowÊä³ö
+%ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½imshowï¿½ï¿½ï¿½
 U=(U-min(U(:)))/(max(U(:))-min(U(:)));
 tryb = sp+1;
 for i=1:maxsp+1
@@ -150,12 +147,6 @@ thres_S = im2bw(S,thres) ;
 
 
 %% write the result
-% imwrite(meanImg,'leaf_my_abstract.png');
-% imwrite(tryb,'leaf_my_uniqueness.png');
-% imwrite(1-tryc,'leaf_my_distribution.png');
-% imwrite(S,'lock_my_result.png');
-
-%% show the result
 
 % figure;
 % subplot(4,3,1);
@@ -178,31 +169,69 @@ thres_S = im2bw(S,thres) ;
 % title('I_channel');
 % subplot(4,3,7);
 % % [Yh,Xh]=imhist(H_channel,64);
-% plot(Xh,Yh,'r');title('HÍ¨µÀ(64µ¥Î»)');
-% %ÕÛÏßÍ¼
+% plot(Xh,Yh,'r');title('HÍ¨ï¿½ï¿½(64ï¿½ï¿½Î»)');
+% %ï¿½ï¿½ï¿½ï¿½Í¼
 % subplot(4,3,8);
 % % [Ys,Xs]=imhist(S_channel,64);
-% plot(Xs,Ys,'r');title('SÍ¨µÀ(64µ¥Î»)');
+% plot(Xs,Ys,'r');title('SÍ¨ï¿½ï¿½(64é€šé“)');
 % subplot(4,3,9);
 % % [Yi,Xi]=imhist(I_channel,64);
-% plot(Xi,Yi,'r');title('IÍ¨µÀ(64µ¥Î»)');
+% plot(Xi,Yi,'r');title('IÍ¨ï¿½ï¿½(64ï¿½ï¿½Î»)');
 
 % figure;
-subplot(2,3,1);
+subplot(4,3,1);
 imshow(img);
 title('Source Image');
-subplot(2,3,2);
+subplot(4,3,2);
 imshow(meanImg);
 title('Super Segmentation');
-subplot(2,3,3) ;
+subplot(4,3,3) ;
 imshow(tryb);
 title('Element Uniqueness');
-subplot(2,3,4);
+subplot(4,3,4);
 imshow(tryc);
 title('Element Distribution');
-subplot(2,3,5);
+subplot(4,3,5);
 imshow(S);
 title('Final Result');
-subplot(2,3,6);
+subplot(4,3,6);
 imshow(thres_S);
 title('Threshold Result');
+%% some result
+subplot(4,3,7);
+imshow(H_channel);
+title('H_channel');
+subplot(4,3,8);
+imshow(S_channel);
+title('S_channel');
+subplot(4,3,9);
+imshow(I_channel);
+title('I_channel');
+% demo = imshow(thres_S);
+
+% if maxChannel == H_result
+    subplot(4,3,10);
+    [Yh,Xh]=imhist(H_channel,64);
+    plot(Xh,Yh,'r');
+%     demo = imshow(H_channel);
+    title('H_channel Result');
+% end;
+% if maxChannel == S_result
+    subplot(4,3,11);
+    [Yh,Xh]=imhist(S_channel,64);
+    plot(Xh,Yh,'r');
+%     demo = imshow(H_channel);
+    title('S_channel Result');
+% end;
+% if maxChannel == I_result
+    subplot(4,3,12);
+    [Yh,Xh]=imhist(I_channel,64);
+    demo = plot(Xh,Yh,'r');
+%     demo = imshow(H_channel);
+    title('I_channel Result');
+% end;
+% pathname = './debug/';
+% picname = 'leaf';
+saveas(demo,[outputpath,Files(i).name],'jpg');
+end;
+
