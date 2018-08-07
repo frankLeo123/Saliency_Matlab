@@ -3,19 +3,26 @@ clc;
 close all;clear all;
 addpath './MEX'
 addpath './SLIC'
-% cd('D:\documents\saliency\2012_saliency_filters');    
-k=6;%�ں�ʱ��Ĳ���
-inputpath = '/home/frank/Documents/data/Imgs/';
-outputpath = './debug/res/';
-Files=dir([inputpath '*.jpg']);  
-number=length(Files); 
-for i=1:number
-    pic = imread([inputpath Files(i).name]);
-%     img2d=imread(pic);
-    numberofsp=50;
-%0-1֮���С��
-    img  = im2double(pic);
-%����tempĿ¼�����SLIC�㷨������ͼƬ
+% cd('D:\documents\saliency\2012_saliency_filters');
+k=6;
+
+%%
+% patch pics
+% inputpath = '/home/frank/Documents/data/Imgs/';
+% outputpath = './debug/res/';
+% Files=dir([inputpath '*.jpg']);
+% number=length(Files);
+%
+% for i=1:number
+%     pic = imread([inputpath Files(i).name]);
+%     %img2d=imread(pic);
+%%
+pic ='/home/frank/Desktop/paper/02_02.jpg';
+% pic ='/home/frank/Project/Saliency_Matlab/brid.png';
+img2d = imread(pic);
+numberofsp=50;
+%0-1
+img  = im2double(img2d);
 %% step init hsi
 [hsi,H_channel,S_channel,I_channel]=rgb2hsi(img);
 [Yh,Xh]=imhist(H_channel,64);
@@ -29,10 +36,39 @@ for i=1:number
 a = 1;b = 2; c =3;
 d = max(max(a,b),c);
 maxChannel = max(max(H_result,S_result),I_result);
-%     sp  = mexGenerateSuperPixel(img, numberofsp);  
-[sp_res,N] = superpixels(img,450);
+%     sp  = mexGenerateSuperPixel(img, numberofsp);
+% [sp_res, N] = superpixels(img,150,'Method','slic','Compactness',15);
+% [sp_res_0,N_0] = superpixels(img,150,'Method','slic0','Compactness',15);
+[sp_res_slic,N_slic] = superpixels(img,250,'Method','slic','Compactness',15);
+[sp_res_slic0,N_slic0] = superpixels(img,250,'Method','slic0','Compactness',15);
 
-    
+outputImage_slic = zeros(size(img),'like',img);
+outputImage_slic0 = zeros(size(img),'like',img);
+
+idx = label2idx(sp_res_slic);
+numRows = size(img,1);
+numCols = size(img,2);
+for labelVal = 1:N_slic
+    redIdx = idx{labelVal};
+    greenIdx = idx{labelVal}+numRows*numCols;
+    blueIdx = idx{labelVal}+2*numRows*numCols;
+    outputImage_slic(redIdx) = mean(img(redIdx));
+    outputImage_slic(greenIdx) = mean(img(greenIdx));
+    outputImage_slic(blueIdx) = mean(img(blueIdx));
+end
+%slic0
+idx = label2idx(sp_res_slic0);
+numRows = size(img,1);
+numCols = size(img,2);
+for labelVal = 1:N_slic0
+    redIdx = idx{labelVal};
+    greenIdx = idx{labelVal}+numRows*numCols;
+    blueIdx = idx{labelVal}+2*numRows*numCols;
+    outputImage_slic0(redIdx) = mean(img(redIdx));
+    outputImage_slic0(greenIdx) = mean(img(greenIdx));
+    outputImage_slic0(blueIdx) = mean(img(blueIdx));
+end
+
 if(maxChannel == H_result)
     [sp,N] = superpixels(H_channel,450);
 end
@@ -42,21 +78,12 @@ end
 if(maxChannel == I_result)
     [sp,N] = superpixels(I_channel,450);
 end
- BW_res = boundarymask(sp_res);
- BW = boundarymask(sp);
+BW_res_slic = boundarymask(sp_res_slic);
+BW_res_slic0 = boundarymask(sp_res_slic0);
 
-% subplot(2,2,1);
-% imshow(img);
-% title('Source Image');
-% subplot(2,2,2);
-% imshow(imoverlay(img,BW,'white'),'InitialMagnification',100);
-% title('Super Segmentation');
-% subplot(2,2,3);
-% imshow(imoverlay(img,BW_res,'white'),'InitialMagnification',100);
-% title('Before result');
-% subplot(2,2,4);
-% imshow(imoverlay(img,BW_res,'white'),'InitialMagnification',100);
-% title('Before result');
+% BW = boundarymask(sp);
+
+
 %% step 1, oversegmentation
 
 % sp=sp_res-1;
@@ -126,7 +153,7 @@ D =(D-min(D(:)))/ (max(D(:))-min(D(:)));
 % D(D>=0.3)=1;
 tryc=sp+1;
 for i=1:maxsp+1
-%     tryc(tryc==i)=D(i);
+    %     tryc(tryc==i)=D(i);
     tryc(tryc==i)=1-D(i);
 end
 % figure;
@@ -147,91 +174,81 @@ thres_S = im2bw(S,thres) ;
 
 
 %% write the result
+%% SLIC超像素改进
+subplot(3,2,1);
+imshow(img);
+title('Source Image');
+subplot(3,2,3);
+imshow(imoverlay(img,BW_res_slic,'white'),'InitialMagnification',100);
+% img(redIdx) = mean(A(redIdx));
+title('Super Segmentation slic');
+subplot(3,2,4);
+% imshow(imoverlay(img,BW_res,'white'),'InitialMagnification',100);
+imshow(outputImage_slic,'InitialMagnification',100);
+title('Super Segmentation slic');
+subplot(3,2,6);
+% imshow(imoverlay(img,BW_res_,'white'),'InitialMagnification',100);
+imshow(outputImage_slic0,'InitialMagnification',100);
+title('Super Segmentation slic0');
+subplot(3,2,5);
+imshow(imoverlay(img,BW_res_slic0,'white'),'InitialMagnification',100);
+% imshow(outputImage_,'InitialMagnification',100);
+title('Super Segmentation slic0');
 
-% figure;
+%% 改进结果
 % subplot(4,3,1);
 % imshow(img);
 % title('Source Image');
 % subplot(4,3,2);
-% imshow(imoverlay(img,BW,'white'),'InitialMagnification',100);
+% imshow(meanImg);
 % title('Super Segmentation');
 % subplot(4,3,3) ;
-% imshow(hsi);
-% title('HSI pics');
+% imshow(tryb);
+% title('Element Uniqueness');
 % subplot(4,3,4);
+% imshow(tryc);
+% title('Element Distribution');
+% subplot(4,3,5);
+% imshow(S);
+% title('Final Result');
+% subplot(4,3,6);
+% imshow(thres_S);
+% title('Threshold Result');
+% % some result
+% subplot(4,3,7);
 % imshow(H_channel);
 % title('H_channel');
-% subplot(4,3,5);
+% subplot(4,3,8);
 % imshow(S_channel);
 % title('S_channel');
-% subplot(4,3,6);
+% subplot(4,3,9);
 % imshow(I_channel);
 % title('I_channel');
-% subplot(4,3,7);
-% % [Yh,Xh]=imhist(H_channel,64);
-% plot(Xh,Yh,'r');title('Hͨ��(64��λ)');
-% %����ͼ
-% subplot(4,3,8);
-% % [Ys,Xs]=imhist(S_channel,64);
-% plot(Xs,Ys,'r');title('Sͨ��(64通道)');
-% subplot(4,3,9);
-% % [Yi,Xi]=imhist(I_channel,64);
-% plot(Xi,Yi,'r');title('Iͨ��(64��λ)');
-
-% figure;
-subplot(4,3,1);
-imshow(img);
-title('Source Image');
-subplot(4,3,2);
-imshow(meanImg);
-title('Super Segmentation');
-subplot(4,3,3) ;
-imshow(tryb);
-title('Element Uniqueness');
-subplot(4,3,4);
-imshow(tryc);
-title('Element Distribution');
-subplot(4,3,5);
-imshow(S);
-title('Final Result');
-subplot(4,3,6);
-imshow(thres_S);
-title('Threshold Result');
-%% some result
-subplot(4,3,7);
-imshow(H_channel);
-title('H_channel');
-subplot(4,3,8);
-imshow(S_channel);
-title('S_channel');
-subplot(4,3,9);
-imshow(I_channel);
-title('I_channel');
 % demo = imshow(thres_S);
-
+%
 % if maxChannel == H_result
-    subplot(4,3,10);
-    [Yh,Xh]=imhist(H_channel,64);
-    plot(Xh,Yh,'r');
-%     demo = imshow(H_channel);
-    title('H_channel Result');
+% subplot(4,3,10);
+% [Yh,Xh]=imhist(H_channel,64);
+% plot(Xh,Yh,'r');
+% % demo = imshow(H_channel);
+% title('H_channel Result');
 % end;
 % if maxChannel == S_result
-    subplot(4,3,11);
-    [Yh,Xh]=imhist(S_channel,64);
-    plot(Xh,Yh,'r');
-%     demo = imshow(H_channel);
-    title('S_channel Result');
+% subplot(4,3,11);
+% [Yh,Xh]=imhist(S_channel,64);
+% plot(Xh,Yh,'r');
+% % demo = imshow(S_result);
+% title('S_channel Result');
 % end;
 % if maxChannel == I_result
-    subplot(4,3,12);
-    [Yh,Xh]=imhist(I_channel,64);
-    demo = plot(Xh,Yh,'r');
-%     demo = imshow(H_channel);
-    title('I_channel Result');
+% subplot(4,3,12);
+% [Yh,Xh]=imhist(I_channel,64);
+% demo = plot(Xh,Yh,'r');
+% % demo = imshow(I_result);
+% title('I_channel Result');
 % end;
 % pathname = './debug/';
 % picname = 'leaf';
-saveas(demo,[outputpath,Files(i).name],'jpg');
-end;
+% saveas(demo,[outputpath,Files(i).name],'jpg');
+% end;
 
