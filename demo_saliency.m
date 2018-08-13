@@ -6,8 +6,8 @@ addpath './SLIC'
 
 k=16;numberofsp=50;
 %% patch pics
-inputpath = './config/';
-outputpath = './debug/';
+inputpath = './config/Imgs/';
+outputpath = './debug/new/';
 Files=dir([inputpath '*.jpg']);
 number=length(Files);
 
@@ -27,32 +27,18 @@ for num=1:number
     [Yi,Xi]=imhist(I_channel,64);
     
     %% demo find min_dix
-    [ H_result ] = selectChannel( Yh,64 );
-    [ S_result ] = selectChannel( Ys,64 );
-    [ I_result ] = selectChannel( Yi,64 );
+    left = 64* 0.25;
+    right = 64 * 0.75;
+    [ H_result ] = selectChannel( Yh,64,left,right);
+    [ S_result ] = selectChannel( Ys,64,left,right );
+    [ I_result ] = selectChannel( Yi,64,left,right );
     a = 1;b = 2; c =3;
     d = max(max(a,b),c);
     maxChannel = max(max(H_result,S_result),I_result);
     % sp  = mexGenerateSupe;rPixel(img, numberofsp);
-    % [sp_res, N] = superpixels(img,150,'Method','slic','Compactness',15);
-    % [sp_res_0,N_0] = superpixels(img,150,'Method','slic0','Compactness',15);
-    [sp_res_slic,N_slic] = superpixels(img,250,'Method','slic','Compactness',15);
     [sp_res_slic0,N_slic0] = superpixels(img,250,'Method','slic0','Compactness',15);
-    
-    outputImage_slic = zeros(size(img),'like',img);
+
     outputImage_slic0 = zeros(size(img),'like',img);
-    
-    idx = label2idx(sp_res_slic);
-    numRows = size(img,1);
-    numCols = size(img,2);
-    for labelVal = 1:N_slic
-        redIdx = idx{labelVal};
-        greenIdx = idx{labelVal}+numRows*numCols;
-        blueIdx = idx{labelVal}+2*numRows*numCols;
-        outputImage_slic(redIdx) = mean(img(redIdx));
-        outputImage_slic(greenIdx) = mean(img(greenIdx));
-        outputImage_slic(blueIdx) = mean(img(blueIdx));
-    end
     %slic0
     idx = label2idx(sp_res_slic0);
     numRows = size(img,1);
@@ -67,15 +53,15 @@ for num=1:number
     end
     
     if(maxChannel == H_result)
-        [sp,N] = superpixels(H_channel,450);
+        [sp,N] = superpixels(H_channel,450,'Method','slic0','Compactness',15);
     end
     if(maxChannel == S_result)
-        [sp,N] = superpixels(S_channel,450);
+        [sp,N] = superpixels(S_channel,450,'Method','slic0','Compactness',15);
     end
     if(maxChannel == I_result)
-        [sp,N] = superpixels(I_channel,450);
+        [sp,N] = superpixels(I_channel,450,'Method','slic0','Compactness',15);
     end
-    BW_res_slic = boundarymask(sp_res_slic);
+%     BW_res_slic = boundarymask(sp_res_slic);
     BW_res_slic0 = boundarymask(sp_res_slic0);
     
     % BW = boundarymask(sp);
@@ -99,7 +85,7 @@ for num=1:number
     for channel = 1: 3
         tempImg = LabImg(:,:,channel);
         for i=1:maxsp+1
-            %trya==i�жϾ������Ƿ����=i��ֵ������Ϊ1��������Ϊ0���ھ����У�
+            %trya==i �жϾ������Ƿ����?i��ֵ������Ϊ1��������Ϊ0���ھ����У�
             meanLabColor(i,1,channel)=mean( tempImg(trya==i));
         end
     end
@@ -132,8 +118,8 @@ for num=1:number
     % U=uniqueness( cntr, labImg, 15 );
     % cntr
     % meanColor
-    U=uniqueness( cntr, meanLabColor, 0.25 );
-    %�����һ����Ϊ��imshow���
+    U=uniqueness( cntr, meanrgbColor, 0.25 );
+    %�����һ����Ϊ��imshow���?
     U=(U-min(U(:)))/(max(U(:))-min(U(:)));
     tryb = sp+1;
     for i=1:maxsp+1
@@ -144,7 +130,7 @@ for num=1:number
     
     %% step 3, element distrix`bution
     % D = distribution( cntr, labImg , 20);
-    D = distribution( cntr, meanLabColor , 20);
+    D = distribution( cntr, meanrgbColor , 20);
     D =(D-min(D(:)))/ (max(D(:))-min(D(:)));
     % D(D<0.3)=0;
     % D(D>=0.3)=1;
