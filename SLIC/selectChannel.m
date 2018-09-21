@@ -1,6 +1,6 @@
 function [ result ] = selectChannel( Yh,num,left,right )
-%SELECTCHANNEL 此处显示有关此函数的摘要
-%   此处显示详细说明
+%SELECTCHANNEL 锟剿达拷锟斤拷示锟叫关此猴拷锟斤拷锟斤拷摘要
+%   锟剿达拷锟斤拷示锟斤拷细说锟斤拷
 result=0;
 num1=0;num2=0;
 high=-1;low=-1;

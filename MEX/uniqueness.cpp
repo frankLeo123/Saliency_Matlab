@@ -31,12 +31,12 @@ void mexFunction ( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
 	const double sigma = mxGetScalar(prhs[2]); 
 	//double sigma = 25;
 
-	plhs[0]=mxCreateDoubleMatrix(length_centers,1,mxREAL);
+	plhs[0]=mxCreateDoubleMatrix(length_centers,1,mxREAL); //247实矩阵
 	U = mxGetPr(plhs[0]) ;
 
 	// Construct the 2-dimensional position vectors and
 	// four-dimensional value vectors
-	//length_centers=39（中心点数目）
+	//length_centers=247（中心点数目）
     //不懂怎么求出来U的
 	vector<float> positions(length_centers*POSITION_DIM);
 	vector<float> values(length_centers*VALUE_DIM);
